@@ -11,7 +11,7 @@ export default function FileUploader({ setCode }) {
 
   return (
     <div className="mb-1 border-4 border-blue-500 w-50">
-      <input type="file" accept=".c,.txt" onChange={handleFileChange} />
+      <input className="text-white" type="file" accept=".c,.txt" onChange={handleFileChange} />
     </div>
   )
 }

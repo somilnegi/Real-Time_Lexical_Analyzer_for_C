@@ -1,5 +1,3 @@
-// src/utils/lexer.js
-
 import { cKeywords, operators, symbols } from './keywords'
 
 export function analyzeCode(code) {
@@ -7,7 +5,8 @@ export function analyzeCode(code) {
   const tokens = []
   const errors = []
 
-  const tokenRegex = /\b[_a-zA-Z][_a-zA-Z0-9]*\b|[0-9]+|==|!=|>=|<=|>>|<<|[+\-*/%=&|^~<>!;{},()[\]]/g
+  // Updated to also detect double-quoted strings
+  const tokenRegex = /"[^"]*"|\b[_a-zA-Z][_a-zA-Z0-9]*\b|[0-9]+|==|!=|>=|<=|>>|<<|[+\-*/%=&|^~<>!;{},()[\]]/g
 
   lines.forEach((line, lineNum) => {
     const matches = [...line.matchAll(tokenRegex)]
@@ -18,30 +17,39 @@ export function analyzeCode(code) {
       const value = match[0]
       const index = match.index
 
-      // Detect unrecognized characters
+      // Detect unrecognized characters between matches
       if (index > lastIndex) {
         const unknown = line.slice(lastIndex, index).trim()
         if (unknown.length > 0) {
           errors.push(`Unrecognized token "${unknown}" on line ${lineNum + 1}`)
+          tokens.push({ type: 'unknown', value: unknown })
         }
       }
 
-      let type = 'Identifier'
+      let type = 'identifier'
 
-      if (cKeywords.includes(value)) type = 'Keyword'
-      else if (!isNaN(value)) type = 'Number'
-      else if (operators.includes(value)) type = 'Operator'
-      else if (symbols.includes(value)) type = 'Symbol'
+      if (value.startsWith('"') && value.endsWith('"')) {
+        type = 'string'
+      } else if (cKeywords.includes(value)) {
+        type = 'keyword'
+      } else if (!isNaN(value)) {
+        type = 'number'
+      } else if (operators.includes(value)) {
+        type = 'operator'
+      } else if (symbols.includes(value)) {
+        type = 'symbol'
+      }
 
       tokens.push({ type, value })
       lastIndex = index + value.length
     })
 
-    // Check for any leftovers after last match
+    // Check for leftovers after the last match
     if (lastIndex < line.length) {
       const unknown = line.slice(lastIndex).trim()
       if (unknown.length > 0) {
         errors.push(`Unrecognized token "${unknown}" on line ${lineNum + 1}`)
+        tokens.push({ type: 'unknown', value: unknown })
       }
     }
 

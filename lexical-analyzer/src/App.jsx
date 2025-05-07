@@ -11,21 +11,23 @@ export default function App() {
   const [errors, setErrors] = useState([])
 
   return (
-    <div className="flex flex-col w-full h-screen p-4">
+    <div className="flex flex-col w-full h-screen p-4 bg-slate-700">
       <Navbar/>
       <FileUploader setCode={setCode} />
-      <div className="flex w-full flex-1 gap-4 mt-4 h-[60%]">
-        <div className="w-[70%]">
+      <div className="flex gap-4 mt-4 h-full">
+        <div className="flex-1 overflow-auto h-full">
           <Editor code={code} setCode={setCode} setTokens={setTokens} setErrors={setErrors} />
         </div>
 
-        <div className="w-[30%]">
-          <TokenDisplay tokens={tokens} />
+        <div className="flex-1 flex flex-col gap-4">
+          <div className='flex-1'>
+            <TokenDisplay tokens={tokens} />
+          </div>
+          <div className='flex-1'>
+            <ErrorDisplay errors={errors} />
+          </div>
         </div>
       </div>
-      <div className="w-[69%] mt-4 h-[40%]">
-      <ErrorDisplay errors={errors} />
     </div>
-      </div>
   )
 }

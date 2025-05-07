@@ -26,9 +26,9 @@ export default function CodeEditor({ code, setCode, setTokens, setErrors }) {
   }
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full rounded-2xl p-4 bg-amber-100">
       <Editor
-        // height="60vh"
+        // height="100%"
         language="c"
         theme="vs-dark"
         value={code}
