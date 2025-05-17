@@ -8,9 +8,9 @@ export const cKeywords = [
     "unsigned", "void", "volatile", "while"
   ]
   
-  export const dataTypes = [
-    "int", "char", "float", "double", "void", "short", "long"
-  ]
+  // export const dataTypes = [
+  //   "int", "char", "float", "double", "void", "short", "long"
+  // ]
   
   export const operators = [
     "+", "-", "*", "/", "%", "++", "--", "==", "!=", ">", "<",
