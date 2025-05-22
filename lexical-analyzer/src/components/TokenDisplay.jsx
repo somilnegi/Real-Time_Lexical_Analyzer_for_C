@@ -1,106 +1,86 @@
-import { useState } from "react";
-
 const TOKEN_STYLES = {
-  keyword: "text-blue-800 bg-[rgba(59,130,246,0.3)]",
-  identifier: "text-purple-800 bg-[rgba(147,51,234,0.3)]",
-  operator: "text-red-800 bg-[rgba(255,0,0,0.3)]",
-  number: "text-orange-800 bg-[rgba(255,128,0,0.3)]",
-  string_literal: "text-green-800 bg-[rgba(21,255,0,0.3)]",
-  symbol: "text-gray-600 bg-[rgba(103,103,103,0.3)]",
-  unknown: "text-black",
-};
-
-const TOKEN_TOOLTIPS = {
-  keyword: "Reserved word in C (e.g., int, return)",
-  identifier: "User-defined name (variable, function, etc.)",
-  operator: "Symbol performing operations (e.g., +, -)",
-  number: "Numeric literal (e.g., 42)",
-  string_literal: "String literal (e.g., \"Hello\")",
-  symbol: "Syntax symbol (e.g., ;, {, })",
-  unknown: "Unrecognized or invalid token",
+  keyword: "bg-blue-900 text-blue-200 border border-blue-700 hover:scale-107",
+  identifier: "bg-purple-900 text-purple-200 border border-purple-700 hover:scale-107",
+  operator: "bg-red-900 text-red-200 border border-red-700 hover:scale-107",
+  literal: "bg-green-900 text-green-200 border border-green-700 hover:scale-107",
+  number: "bg-orange-900 text-orange-200 border border-orange-700 hover:scale-107",
+  string: "bg-pink-900 text-pink-200 border border-pink-700 hover:scale-107",
+  delimiter: "bg-gray-700 text-gray-200 border border-gray-600 hover:scale-107",
+  comment: "bg-gray-800 text-gray-400 italic border border-gray-700 hover:scale-107",
+  unknown: "bg-yellow-900 text-yellow-200 border border-yellow-700 hover:scale-107",
+  symbol: "bg-indigo-900 text-indigo-200 border border-indigo-700 hover:scale-107",
+  preprocessor: "bg-purple-900 text-purple-200 border border-purple-700 hover:scale-107",
 };
 
 export default function TokenDisplay({ tokens }) {
-  const [filter, setFilter] = useState("all");
-
-  const tokensByLine = tokens.reduce((acc, token) => {
-    acc[token.line] = acc[token.line] || [];
-    acc[token.line].push(token);
+  // Group tokens by line number
+  const groupedTokens = tokens.reduce((acc, token) => {
+    const lineNumber = token.line + 1;
+    if (!acc[lineNumber]) {
+      acc[lineNumber] = [];
+    }
+    
+    // Special handling for #include
+    const processedToken = {
+      ...token,
+      type: token.value.startsWith('#include') ? 'preprocessor' : token.type
+    };
+    
+    acc[lineNumber].push(processedToken);
     return acc;
   }, {});
 
-  // Filter handler
-  const filteredTokensByLine = Object.fromEntries(
-    Object.entries(tokensByLine).map(([line, lineTokens]) => [
-      line,
-      filter === "all"
-        ? lineTokens
-        : lineTokens.filter((token) => token.type === filter),
-    ])
-  );
-
-  const tokenTypes = Object.keys(TOKEN_STYLES);
+  const lineNumbers = Object.keys(groupedTokens).sort((a, b) => a - b);
 
   return (
-    <div className="h-full bg-amber-200 flex flex-col rounded-2xl">
-      <div className="rounded-t-xl top-0 px-4 py-2 bg-white dark:bg-gray-800 z-10 flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Tokens</h2>
-        <select
-          className="border-2 rounded-xl px-3 py-1 text-sm"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        >
-          <option className="bg-gray-800" value="all">All</option>
-          {tokenTypes.map((type) => (
-            <option className="bg-gray-800" key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
+    <div className="h-full flex flex-col border border-gray-700 rounded-lg overflow-hidden bg-gray-900">
+      {/* Header with dark theme */}
+      <div className="bg-gray-800 text-purple-200 p-3 border-b border-gray-700">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            
+          </svg>
+          Tokens
+        </h2>
       </div>
-      <div className="flex-1 overflow-auto p-4">
-        {tokens.length === 0 ? (
-          <div className="h-full flex justify-center items-center text-black dark:text-black">
-            No tokens to display
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {Object.entries(filteredTokensByLine).map(([line, lineTokens]) => (
-              <div key={line} className="token-line relative animate-fadeIn">
-                <div className="pl-12 flex flex-wrap gap-2">
-                  {lineTokens.length === 0 ? (
-                    <span className="text-black">
-                      {/* No tokens of selected type */}
+      
+      {/* Scrollable content area with dark theme */}
+      <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="overflow-y-auto p-4" style={{ maxHeight: 'calc(70vh - 150px)' }}>
+          {lineNumbers.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No tokens to display
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {lineNumbers.map((lineNum) => (
+                <div key={lineNum} className="flex flex-col">
+                  {/* Line number indicator */}
+                  <div className="flex items-baseline mb-2">
+                    <span className="text-xs font-mono bg-gray-800 text-gray-300 px-2 py-1 rounded mr-2">
+                      Line {lineNum}
                     </span>
-                  ) : (
-                    lineTokens.map((token, index) => {
-                      const colorClass =
-                        TOKEN_STYLES[token.type] || "text-black";
-                      const tooltip =
-                        TOKEN_TOOLTIPS[token.type] || "Token";
-
-                      return (
-                        <span
-                          key={`${token.line}-${token.column}-${index}`}
-                          className={`inline-flex items-center px-2 py-1 rounded text-sm font-mono transition-all hover:shadow-md hover:scale-105 cursor-pointer ${colorClass}`}
-                          title={tooltip}
-                        >
-                          <span className="text-xs mr-1.5 opacity-60">
-                            {/* Line- {token.line} */}
-                            {token.type}
-                          </span>
-                          {token.value.length > 30
-                            ? `${token.value.substring(0, 30)}...`
-                            : token.value}
-                        </span>
-                      );
-                    })
-                  )}
+                    <div className="border-t border-gray-700 flex-grow"></div>
+                  </div>
+                  
+                  {/* Tokens row */}
+                  <div className="flex flex-wrap gap-2 pl-6">
+                    {groupedTokens[lineNum].map((token, idx) => (
+                      <div
+                        key={`${lineNum}-${idx}`}
+                        className={`px-3 py-1 rounded-md text-sm font-mono flex items-center ${TOKEN_STYLES[token.type] || 'bg-gray-800 text-gray-200'}`}
+                        title={`${token.type} at line ${lineNum}, column ${token.column + 1}`}
+                      >
+                        <span className="font-medium">{token.value}</span>
+                        <span className="text-xs opacity-70 ml-1">- {token.type}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
