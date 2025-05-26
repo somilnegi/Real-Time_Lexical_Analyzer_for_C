@@ -1,30 +1,40 @@
-import Editor from '@monaco-editor/react';
-import { useEffect } from 'react';
-import { analyzeCode } from '../utils/lexer';
+import Editor from "@monaco-editor/react";
+import { useEffect } from "react";
 
-export default function CodeEditor({ code, setCode, setTokens, setErrors }) {
-  const handleChange = (value) => {
-    setCode(value); // Update code state immediately
+export default function CodeEditor({ code, setCode }) {
+  // Handle editor mounting
+  useEffect(() => {
+    console.log("Editor mounted");
+    return () => console.log("Editor unmounted");
+  }, []);
+
+  const renderClasses = () => {
+    if (dark) {
+      return;
+    } else {
+      return;
+    }
   };
 
-  // Secondary analysis to catch any missed updates
-  useEffect(() => {
-    const { tokens, errors } = analyzeCode(code);
-    setTokens(tokens);
-    setErrors(errors);
-  }, [code, setTokens, setErrors]);
-
   return (
-    <div className="w-full h-full rounded-2xl p-4 bg-amber-100">
+    <div
+      className={"w-full dark: h-full rounded-2xl bg-gray-900 overflow-hidden"}
+    >
       <Editor
+        height="100%"
         language="c"
         theme="vs-dark"
         value={code}
-        onChange={handleChange}
+        onChange={setCode}
         options={{
           minimap: { enabled: false },
           fontSize: 14,
           automaticLayout: true,
+          scrollBeyondLastLine: false,
+        }}
+        onMount={(editor) => {
+          console.log("Editor mounted successfully");
+          editor.focus();
         }}
       />
     </div>
